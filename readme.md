@@ -12,6 +12,7 @@ The technology used :
  - Symfony 4.0
  - Node.js 9.5.0
  - Arduino
+ - Mqtt
 
 
 The lib used :
@@ -20,3 +21,14 @@ The lib used :
  - Mqtt.js
  - Jquery
 
+## Air Quality : Arduino
+
+For install symfony :
+
+- Use script.sh init
+- Then lanch script.sh start open
+
+
+For node installation:
+
+- In node directory install npm module
