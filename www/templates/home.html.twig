@@ -1,7 +1,32 @@
 {% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+    <style>
+        .loader {
+            margin: 0 auto;
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+    </style>
+{% endblock %}
+
 {% block body %}
 
+    <div class="loader"></div>
     <canvas id="myChart" width="400" height="400"></canvas>
 
 {% endblock %}
@@ -9,21 +34,30 @@
 {% block javascripts %}
     <script>
 
+
         var url = "{{ path('get_data') }}";
+
         var ctx = document.getElementById("myChart").getContext('2d');
-        var dataSets = [];
         var config = {
             type: 'line',
             data: {
-                label: "Air Quality",
                 datasets: [{
-                    labels: null,
-                    data: null
+                    data: []
                 }]
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            displayFormats: {
+                                quarter: 'MMM YYYY'
+                            }
+                        }
+                    }]
+                }
             }
         };
-
-        var myChart = new Chart(ctx, config);
 
 
         $('document').ready(function () {
@@ -31,24 +65,26 @@
             setTimeout(function () {
                 $.getJSON(url, function (datas) {
 
+                    console.log("YES");
                     var quality = $.map(datas, function (item) {
                         return {
-                            x :item["quality"],
-                            y: item["date"]
+                            x: item["date"],
+                            y: item["quality"]
                         }
                     });
 
+                    config.data.datasets[0]["data"] = quality;
+                    config.data.datasets[0]["label"] = "Quality of Air";
 
-                    myChart.data.datasets.forEach(function (dataset) {
-                        dataset.data = quality;
-                    });
-
-                    console.log(myChart.data.datasets);
+                    var myChart = new Chart(ctx, config);
 
                     myChart.update();
 
+                    $('.loader').hide();
+
                 })
-            }, 2000);
+
+            }, 100);
 
         });
 
