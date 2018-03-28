@@ -1,0 +1,42 @@
+version: "3.3"
+
+services:
+  backend:
+    build: backend
+    ports :
+     - "127.0.0.1:80:80"
+    volumes:
+     - ../www/:/var/www/html
+     - "./backend/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro"
+     - "./backend/apache.conf:/etc/apache2/sites-enabled/000-default.conf:ro"
+
+  phpmyadmin:
+     image: phpmyadmin/phpmyadmin
+     ports :
+      - "127.0.0.1:8080:80"
+     environment:
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=root
+      - PMA_PORT=3306
+      - PMA_HOST=database
+      - PMA_USER=root
+      - PMA_PASSWORD=root
+     depends_on:
+      - database
+     links:
+      - database:mysql
+
+  database:
+    image: mysql:5.7
+    ports:
+     - "127.0.0.1:3306:3306"
+    environment:
+       - MYSQL_ROOT_PASSWORD=root
+       - MYSQL_DATABASE=iot
+       - MYSQL_USER=admin
+       - MYSQL_PASSWORD=root
+    volumes:
+        - ./data-mysql/db:/var/lib/mysql
+        - ../sql:/sql/
+        - ./conf/:/etc/mysql/conf.d/"
+

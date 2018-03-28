@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <canvas id="myChart" width="400" height="400"></canvas>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+
+        var url = "{{ path('get_data') }}";
+        var ctx = document.getElementById("myChart").getContext('2d');
+        var dataSets = [];
+        var config = {
+            type: 'line',
+            data: {
+                label: "Air Quality",
+                datasets: [{
+                    labels: null,
+                    data: null
+                }]
+            }
+        };
+
+        var myChart = new Chart(ctx, config);
+
+
+        $('document').ready(function () {
+
+            setTimeout(function () {
+                $.getJSON(url, function (datas) {
+
+                    var quality = $.map(datas, function (item) {
+                        return {
+                            x :item["quality"],
+                            y: item["date"]
+                        }
+                    });
+
+
+                    myChart.data.datasets.forEach(function (dataset) {
+                        dataset.data = quality;
+                    });
+
+                    console.log(myChart.data.datasets);
+
+                    myChart.update();
+
+                })
+            }, 2000);
+
+        });
+
+    </script>
+{% endblock %}
