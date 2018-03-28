@@ -1,61 +1,81 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include <Adafruit_NeoPixel.h>
+#define PIN D4
+#define NUM_LEDS 8
+#define SSID "AndroidAP"
+#define PASS "cqxj1571"
 
+void colorAdafruit(int R,int G,int B);
 void graph(int value);
 void connectToWifi();
 void callback(char* topic, byte* payload, unsigned int length);
 void reconnect();
 
 //SSID of your network
-char ssid[] = "AndroidAP"; //SSID of your Wi-Fi router
-char pass[] = "cqxj1571"; //Password of your Wi-Fi router
+char ssid[] = SSID; //SSID of your Wi-Fi router
+char pass[] = PASS; //Password of your Wi-Fi router
 char msg[50];
 char topicPub[] = "sensor/sound";
 const char* mqtt_server = "192.168.43.141";
 
-WiFiClient espClient;
-PubSubClient client(espClient);
-
 //Sound sensor
-int sensorSoundPin = A0; 
+int sensorSoundPin = A0;
 int sensorValue = 0;
 
 int sensorMovePin = D7;
 int val;
 
+int R = 0;
+int G = 0;
+int B = 255;
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
+
 void setup() {
   // initialize digital pin LED_BUILTIN as an output.
   Serial.begin(115200);
   connectToWifi();
-  //pinMode(sensorMovePin, INPUT); 
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+
+  strip.begin();
+  strip.show();
 }
 
 
 // the loop function runs over and over again forever
 void loop() {
+
   if (!client.connected()) {
     reconnect();
   }
-  client.loop();
 
-  /*val = digitalRead(sensorMovePin);
-  Serial.println(val);
-  if (val == LOW){
-    Serial.println("NO MOTION");
-    client.publish(topicPub, "No motion");
-  }else{
-    Serial.println("MENTION");
-    client.publish(topicPub, "motion");
-  }
-  delay(100);
-  */
+  client.loop();
   delay(5000);
   sensorValue = analogRead(sensorSoundPin);
   snprintf (msg, 75, "%ld", sensorValue);
   client.publish(topicPub, msg);
-  
+
+  if(sensorValue > 190){
+    R = 255;
+    G = 0;
+    B = 0;
+  } else if ( sensorValue > 150  && sensorValue < 175){
+     R = 255;
+     G = 165;
+     B = 0;
+  }else if(sensorValue < 150){
+    R = 77;
+    G = 225;
+    B = 0;
+  }
+
+  colorAdafruit(R,G,B);
+  clearColorAdafruit();
+
 }
 
 void connectToWifi(){
@@ -116,6 +136,31 @@ void reconnect() {
   }
 }
 
+void colorAdafruit(int R,int G,int B){
+
+  for(int i=0;i<NUM_LEDS;i++){
+    // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
+    strip.setPixelColor(i, strip.Color(R,G,B)); // Moderately bright green color.
+    strip.show(); // This sends the updated pixel color to the hardware.
+    delay(500); // Delay for a period of time (in milliseconds).
+  }
+
+}
+
+
+void clearColorAdafruit(){
+
+  for(int i=0;i<NUM_LEDS;i++){
+
+    strip.setPixelColor(i, strip.Color(0,0,0)); // Moderately bright green color.
+
+    strip.show(); // This sends the updated pixel color to the hardware.
+
+    delay(500); // Delay for a period of time (in milliseconds).
+
+  }
+
+}
 
 
 
